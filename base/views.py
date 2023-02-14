@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 from django.contrib.auth.models import User
+from . models import *
+
 from django.contrib.auth.hashers import make_password
 
 
@@ -15,7 +17,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status
 
-from . serializers import UserSerializer, UserSerializerWithToken
+from . serializers import *
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -58,3 +60,58 @@ def registerUser(request):
     except:
         message = {"detail": "User With this email already exists"}
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["GET"])
+def productsList(request):
+    products = Product.objects.all()
+    serializer = ProductSerializer(products, many=True)
+    return Response(serializer.data)
+
+@api_view(["GET"])
+def productDetail(request, pk):
+    product = Product.objects.get(id=pk)
+    serializer = ProductSerializer(product)
+    return Response(serializer.data)
+
+@api_view(["GET"])
+def teachersList(request):
+    teachers = User.objects.filter(is_staff=True)
+    serializer = UserSerializer(teachers, many=True)
+    return Response(serializer.data)
+
+@api_view(["GET"])
+def postsList(request):
+    posts = Post.objects.all()
+    serializer = PostSerializer(posts, many=True)
+    return Response(serializer.data)
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def postRegister(request):
+    data = request.data
+    user = request.user
+    try:
+        post = Post.objects.create(
+        user = user,
+        title = data["title"],
+        category = data["category"],
+        subject = data["subject"]
+    )
+        serializer = PostSerializer(post, many=False)
+        return Response(serializer.data)
+    except:
+        message = {"detail": "User With this email already exists"}
+        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+def podcastsList(request):
+    teachers = Podcast.objects.all()
+    serializer = PodcastSerializer(teachers, many=True)
+    return Response(serializer.data)
+
+@api_view(["GET"])
+def quizList(request):
+    teachers = Quiz.objects.all()
+    serializer = QuizSerialiser(teachers, many=True)
+    return Response(serializer.data)
